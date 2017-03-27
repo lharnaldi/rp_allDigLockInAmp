@@ -4,10 +4,15 @@ use ieee.numeric_std.all;
 use work.funct.all;
 
 entity ref_freq is
+  generic (
+  ADC_DATA_WIDTH : natural := 14;
+  AXIS_TDATA_WIDTH: natural := 32
+);
+
 port(
-  clk_i: in std_logic;
-  reference_sync_wave: in std_logic; -- reference signal after zero crossing
-  SPARTAN_clk: in std_logic;
+  clk_i        : in std_logic;
+  ref_sync_wave: in std_logic; -- reference signal after zero crossing
+  SPARTAN_clk  : in std_logic;
   DDS_feedback_out: out std_logic_vector (23 downto 0);
   ref_period_cnt_out: out std_logic_vector (25 downto 0)
 );
@@ -29,8 +34,8 @@ DDS_feedback_out <= ref_frequency;
 process(SPARTAN_clk)
 begin
   if rising_edge(SPARTAN_clk) then
-    previous_ref_state <= reference_sync_wave;
-    if ((reference_sync_wave = '1') and (previous_ref_state  = '0')) then --if reference pulse goes high, begin count
+    previous_ref_state <= ref_sync_wave;
+    if ((ref_sync_wave = '1') and (previous_ref_state  = '0')) then --if reference pulse goes high, begin count
       ref_period_int<=ref_period_counter;
       ref_period_counter <=  ((0)=>'1', others=>'0');
     else -- it counts for both positive and negative periods, but period is taken for one
