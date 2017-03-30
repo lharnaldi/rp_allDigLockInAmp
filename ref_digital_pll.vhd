@@ -5,18 +5,18 @@ use ieee.numeric_std.all;
 
 entity ref_digital_psd is
   port(
-		clk_i: in std_logic;
-		DDS_sync_output:in std_logic;
-		reference_sync_wave: in std_logic; -- reference signal after zero crossing
-		DDS_feedback_out: out std_logic_vector (21 downto 0);
-		comparator_out_pos:inout std_logic;
-		comparator_out_neg:inout std_logic
+		clk_i      : in std_logic;
+		dds_sync_i : in std_logic;
+		ref_i      : in std_logic; -- reference signal after zero crossing
+		dds_fbk_o  : out std_logic_vector (21 downto 0);
+		comp_pos_o : out std_logic;
+		comp_neg_o : out std_logic
 );
 end ref_digital_psd;
 
 architecture rtl of ref_digital_psd is
 
-signal DDS_feedback_out_1: std_logic_vector(21 downto 0):=(others=>'0');
+signal dds_fbk_o_1: std_logic_vector(21 downto 0):=(others=>'0');
 signal pos_gain: std_logic_vector(21 downto 0):=(others=>'0');
 signal neg_gain: std_logic_vector(21 downto 0):=(others=>'0');
 signal reset: std_logic;
@@ -28,95 +28,58 @@ constant gain: std_logic_vector(21 downto 0):="0010000000000000000000"; --16 Hz 
 
 begin
 
---process (clk_i)
---begin
---if rising_edge(clk_i) then
---reset<=DDS_sync_output and reference_sync_wave;
+comp_pos_o <= comp_pos_reg;
+comp_neg_o <= comp_neg_reg;
+reset      <= dds_sync_i and ref_i;
 
---if DDS_sync_output = '1' then
---if(reset='1') then
-		--comparator_out_neg <= '0';
-	--else
-		--comparator_out_neg <= '1';
-	--end if;
---end if;
-
---if reference_sync_wave='1'  then
-	--if(reset='1') then
-		--comparator_out_pos <= '0';
-	--else
-		--comparator_out_pos <= '1';
-	--end if;
---end if;
---end if;
---end process;
-
-reset<=DDS_sync_output and reference_sync_wave;
-
-process (reset)		--phase comparator flip flops
+--phase comparator flip flops
+process(dds_sync_i)		
 begin
-if rising_edge (reset) then
---	comparator_out_pos <= '0';
---	comparator_out_neg <= '0';
+if rising_edge(dds_sync_i) then
+  comp_neg_reg <= com_neg_next;
 end if;
 end process;
 
-process (DDS_sync_output)		--phase comparator flip flops
+comp_neg_next <= '0' when (reset = '1') else '1';
+
+process(ref_i)
 begin
-if rising_edge(DDS_sync_output) then
-	if(reset='1') then
-		comparator_out_neg <= '0';
-	else
-		comparator_out_neg <= '1';
-	end if;
+if rising_edge(ref_i)  then
+  comp_pos_reg <= com_pos_next;
 end if;
 end process;
 
-process (reference_sync_wave)
-begin
-if rising_edge(reference_sync_wave)  then
-	if(reset='1') then
-		comparator_out_pos <= '0';
-	else
-		comparator_out_pos <= '1';
-	end if;
-end if;
-end process;
+comp_pos_next <= '0' when (reset = '1') else '1';
 
 out_pos_flash <= pos_temp1;	
 out_neg_flash <= neg_temp1;
 
-Process (clk_i)
---Process (reference_sync_wave)
-
+process(clk_i)
 begin
+ if rising_edge(clk_i) then
+   pos_temp1<=comp_pos_reg;
+   neg_temp1<=comp_neg_reg;
 
-if rising_edge(clk_i) then
+	 if ((out_neg_flash='1') and (out_pos_flash ='0')) then 
+	   dds_fbk_o_1(21 downto 0) <= std_logic_vector(unsigned(dds_fbk_o_1)-32); -- -1 hz step
+	 elsif ((out_pos_flash ='1') and (out_neg_flash='0')) then	
+	   dds_fbk_o_1(21 downto 0) <= std_logic_vector(unsigned(dds_fbk_o_1)+32); -- +1 hz step
+	 end if;
 
-pos_temp1<=comparator_out_pos;
-neg_temp1<=comparator_out_neg;
-
-	if ((out_neg_flash='1') and (out_pos_flash ='0')) then 
-	DDS_feedback_out_1(21 downto 0)<=std_logic_vector(unsigned(DDS_feedback_out_1)-32); -- -1 hz step
-
-	elsif ((out_pos_flash ='1') and (out_neg_flash='0')) then	
-	DDS_feedback_out_1(21 downto 0)<=std_logic_vector(unsigned(DDS_feedback_out_1)+32); -- +1 hz step
-	end if;
-
-	if (pos_temp1='1') then
-		neg_gain <= (others =>'0');
-		pos_gain <= gain;
-	elsif (neg_temp1='1') then
-		pos_gain <= (others =>'0');
-		neg_gain <= gain;
-	else
-		pos_gain <= (others =>'0');
-		neg_gain <= (others =>'0');
-	end if;
-end if;
+	 if (pos_temp1='1') then
+	   neg_gain <= (others =>'0');
+		 pos_gain <= gain;
+	 elsif (neg_temp1='1') then
+		 pos_gain <= (others =>'0');
+		 neg_gain <= gain;
+	 else
+		 pos_gain <= (others =>'0');
+		 neg_gain <= (others =>'0');
+	 end if;
+ end if;
 end process;
 
-DDS_feedback_out <= std_logic_vector(unsigned(DDS_feedback_out_1) + unsigned(pos_gain) - unsigned(neg_gain) + 64);
+dds_fbk_o <= std_logic_vector(unsigned(dds_fbk_o_1) + unsigned(pos_gain) - unsigned(neg_gain) + 64);
 
 end rtl;
 
