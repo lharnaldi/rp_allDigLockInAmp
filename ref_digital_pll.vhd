@@ -4,13 +4,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity ref_digital_psd is
-  port(
-		clk_i      : in std_logic;
-		dds_sync_i : in std_logic;
-		ref_i      : in std_logic; -- reference signal after zero crossing
-		dds_fbk_o  : out std_logic_vector (21 downto 0);
-		comp_pos_o : out std_logic;
-		comp_neg_o : out std_logic
+port(
+  clk_i      : in std_logic;
+  dds_sync_i : in std_logic;
+  ref_i      : in std_logic; -- reference signal after zero crossing
+  dds_fbk_o  : out std_logic_vector (21 downto 0);
+  comp_pos_o : out std_logic;
+  comp_neg_o : out std_logic
 );
 end ref_digital_psd;
 
