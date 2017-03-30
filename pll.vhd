@@ -20,10 +20,10 @@ architecture rtl of pll is
 signal reference_square_wave: std_logic;
 signal DDS_sync_output: std_logic;
 signal DDS_feedback_out: std_logic_vector (23 downto 0):=(others => '0');
-signal	PLL_pos: std_logic;
-signal	PLL_neg: std_logic;
-signal	phase_I: std_logic_vector (9 downto 0);
-signal	phase_Q: std_logic_vector (9 downto 0);
+signal PLL_pos: std_logic;
+signal PLL_neg: std_logic;
+signal phase_I: std_logic_vector (9 downto 0);
+signal phase_Q: std_logic_vector (9 downto 0);
 
 begin
 
