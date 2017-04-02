@@ -31,7 +31,7 @@ end process;
 
 --next state
  --fout = fclock * a / (# step per full cycle) * fin *2^16.     # steps is 2^60, f=100MHz => a = 175922.
- phase_step_next <= std_logic_vector(to_unsigned(175922,20) * unsigned(freq_reg)); 
+ phase_step_next <= std_logic_vector(to_unsigned(175922,20) * unsigned(freq_i)); 
  
  phase_acc_next <= std_logic_vector(unsigned(phase_acc_reg) + unsigned(phase_step_reg)); 
 
