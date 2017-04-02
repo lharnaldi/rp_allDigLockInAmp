@@ -3,7 +3,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity ref_digital_psd is
+entity adpll is
 port(
   clk_i      : in std_logic;
   ref_i      : in std_logic; -- reference signal after zero crossing
@@ -12,11 +12,11 @@ port(
   comp_up_o  : out std_logic;
   comp_dn_o  : out std_logic
 );
-end ref_digital_psd;
+end adpll;
 
-architecture rtl of ref_digital_psd is
+architecture rtl of adpll is
 
-constant gain: std_logic_vector(29 downto 0):=2#00_0000_0010_0000_0000_0000_0000_0000#; --16 Hz //524288
+constant gain: std_logic_vector(29 downto 0):="000000001000000000000000000000"; --16 Hz //524288
 signal comp_up_reg, comp_up_next : std_logic;
 signal comp_dn_reg, comp_dn_next : std_logic;
 
