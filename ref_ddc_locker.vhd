@@ -5,10 +5,10 @@ use ieee.numeric_std.all;
 
 entity ref_ddc_locker is
 port(
-	clk_i     : in std_logic;
-	ref_i     : in std_logic; -- reference signal after zero crossing
-	dds_sync_i:in std_logic;
-	locked_o  : out std_logic
+  clk_i     : in std_logic;
+  ref_i     : in std_logic; -- reference signal after zero crossing
+  dds_sync_i: in std_logic;
+  locked_o  : out std_logic
 );
 end ref_ddc_locker;
 
@@ -64,7 +64,7 @@ end process;
                     dds_period_reg;
 
  --output
-	                --if dds period is within +/- 25% of ref period, turn on local lock signal. 3/4 < x > 5/4
+                  --if dds period is within +/- 25% of ref period, turn on local lock signal. 3/4 < x > 5/4
  locked_o        <= '1' when ((unsigned(dds_period_reg) > (3*unsigned(ref_period_reg)/4)) and (unsigned(dds_period_reg) < (5*unsigned(ref_period_reg)/4))) else '0';
 
 end rtl;
