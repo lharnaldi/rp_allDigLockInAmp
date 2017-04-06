@@ -52,8 +52,8 @@ det_o_next <= '1' when (sig_i_reg(sig_i_reg'left) = '1' and sig_i_next(sig_i_nex
               det_o_reg;
 
 hyst_low_next  <= '1' when (signed(sig_i_next) < (-hyst)) else
-                                '0' when (sig_i_reg(sig_i_reg'left) = '1' and sig_i_next(sig_i_next'left) = '0' and hyst_low_reg = '1') else
-                                hyst_low_reg;
+                  '0' when (sig_i_reg(sig_i_reg'left) = '1' and sig_i_next(sig_i_next'left) = '0' and hyst_low_reg = '1') else
+                  hyst_low_reg;
 
 hyst_high_next <= '1' when (signed(sig_i_next) > (hyst)) else
                   '0' when (sig_i_reg(sig_i_reg'left) = '0' and sig_i_next(sig_i_next'left) = '1' and hyst_high_reg = '1') else
