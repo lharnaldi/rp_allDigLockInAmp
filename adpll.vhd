@@ -19,13 +19,15 @@ architecture rtl of adpll is
 
 constant gain: std_logic_vector(29 downto 0):= std_logic_vector(to_unsigned(2097152, 30)); --"000000001000000000000000000000"; 
 
+--PSD realted signals
+signal reset: std_logic := '0';
 signal comp_up_reg, comp_up_next : std_logic := '0';
 signal comp_dn_reg, comp_dn_next : std_logic := '0';
 
-signal dds_fbk_reg, dds_fbk_next   : std_logic_vector(29 downto 0);
+--Loop filter related signals
 signal pos_gain_reg, pos_gain_next : std_logic_vector(29 downto 0);
 signal neg_gain_reg, neg_gain_next : std_logic_vector(29 downto 0);
-signal reset: std_logic := '0';
+signal dds_fbk_reg, dds_fbk_next   : std_logic_vector(29 downto 0);
 
 begin
 
@@ -83,6 +85,5 @@ end process;
 
  dds_fbk_o <= std_logic_vector(unsigned(dds_fbk_reg) + unsigned(pos_gain_reg) - unsigned(neg_gain_reg) + 64);
  
-
 end rtl;
 
