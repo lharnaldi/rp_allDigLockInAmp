@@ -8,7 +8,7 @@ port(
 	clk_i     : in std_logic;
 	rst_i     : in std_logic;
 	ref_i     : in std_logic; -- reference signal after zero crossing
-	dds_sync_i:in std_logic;
+	dds_sync_i: in std_logic;
 	locked_o  : out std_logic
 );
 end ref_ddc_locker;
