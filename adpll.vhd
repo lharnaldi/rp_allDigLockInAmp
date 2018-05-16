@@ -18,15 +18,6 @@ end adpll;
 
 architecture rtl of adpll is
 
-component sincos_lut_14
-port (
-  clk_i   : in  std_logic;
-  addr_i  : in  std_logic_vector(14-1 downto 0);
-  sin     : out std_logic_vector(14-1 downto 0);
-  cos     : out std_logic_vector(14-1 downto 0)
-  );
-end component;
-
 constant C_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(2097152, 32)); --"00000000001000000000000000000000"; 8192.00
 --constant C_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(59782528, 32)); --"00000000001000000000000000000000"; 8192.00
 constant I_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(32,32));
@@ -132,7 +123,7 @@ end process;
 
 lut_addr <= phase_acc_reg(50-1 downto 36);
  
- lut: sincos_lut_14 
+ LUT: entity work.sincos_lut_14 
    port map( 
      clk_i   => clk_i,
      addr_i  => lut_addr,
