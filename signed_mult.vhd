@@ -1,4 +1,5 @@
 library ieee;
+
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -12,7 +13,7 @@ port(
   clk_i : in std_logic;
   a_i   : in std_logic_vector (ADC_DATA_WIDTH-1 downto 0);
   b_i   : in std_logic_vector (ADC_DATA_WIDTH-1 downto 0);
-  mult_o: out std_logic_vector (2*(ADC_DATA_WIDTH-1 downto 0))
+  mult_o: out std_logic_vector (2*ADC_DATA_WIDTH-1 downto 0)
 );
 end signed_mult;
 
@@ -26,7 +27,7 @@ process (clk_i)
 begin
   if rising_edge(clk_i) then
     mult_reg <= mult_next;
-end if;
+  end if;
 end process;
 
   --Next state logic
