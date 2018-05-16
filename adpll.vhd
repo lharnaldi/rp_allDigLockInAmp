@@ -8,30 +8,42 @@ port(
   clk_i      : in std_logic;
   rst_i      : in std_logic;
   ref_i      : in std_logic; -- reference signal after zero crossing
-  phase_I    : out std_logic_vector (9 downto 0);
-  phase_Q    : out std_logic_vector (9 downto 0);
-  locked_o   : out std_logic
+--  phase_I    : out std_logic_vector (14-1 downto 0);
+--  phase_Q    : out std_logic_vector (14-1 downto 0);
+  locked_o   : out std_logic;
+  sin_o      : out std_logic_vector(14-1 downto 0);
+  cos_o      : out std_logic_vector(14-1 downto 0)
 );
 end adpll;
 
 architecture rtl of adpll is
 
-constant gain: std_logic_vector(29 downto 0):= std_logic_vector(to_unsigned(2097152, 30)); --"000000001000000000000000000000"; 
+component sincos_lut_14
+port (
+  clk_i   : in  std_logic;
+  addr_i  : in  std_logic_vector(14-1 downto 0);
+  sin     : out std_logic_vector(14-1 downto 0);
+  cos     : out std_logic_vector(14-1 downto 0)
+  );
+end component;
 
+constant C_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(2097152, 32)); --"00000000001000000000000000000000"; 8192.00
+--constant C_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(59782528, 32)); --"00000000001000000000000000000000"; 8192.00
+constant I_GAIN: std_logic_vector(32-1 downto 0):= std_logic_vector(to_unsigned(32,32));
 --PSD realted signals
 signal reset: std_logic := '0';
 signal comp_up_reg, comp_up_next : std_logic := '0';
 signal comp_dn_reg, comp_dn_next : std_logic := '0';
 
 --Loop filter related signals
-signal pos_gain_reg, pos_gain_next : std_logic_vector(29 downto 0);
-signal neg_gain_reg, neg_gain_next : std_logic_vector(29 downto 0);
-signal dds_fbk_reg, dds_fbk_next   : std_logic_vector(29 downto 0);
-signal dds_fbk                     : std_logic_vector(29 downto 0);
+signal pos_gain_reg, pos_gain_next : std_logic_vector(32-1 downto 0);
+signal neg_gain_reg, neg_gain_next : std_logic_vector(32-1 downto 0);
+signal dds_fbk_reg, dds_fbk_next   : std_logic_vector(32-1 downto 0);
+signal dds_fbk                     : std_logic_vector(32-1 downto 0);
 
 --DDS related signals
-signal phase_acc_reg, phase_acc_next: std_logic_vector(49 downto 0);
-signal phase_step: std_logic_vector(49 downto 0) := (others => '0');
+signal phase_acc_reg, phase_acc_next: std_logic_vector(50-1 downto 0);
+signal phase_step: std_logic_vector(50-1 downto 0) := (others => '0');
 signal dds_sync  : std_logic;
 
 --Locked indicator related signals
@@ -43,30 +55,36 @@ signal dds_period_cntr_reg, dds_period_cntr_next : std_logic_vector(31 downto 0)
 signal dds_period_reg, dds_period_next : std_logic_vector(31 downto 0);
 signal dds_count_done_reg, dds_count_done_next: std_logic;
 signal dds_reg, dds_next: std_logic;
-
+signal up_sal, dn_sal : std_logic;
+signal lut_addr : std_logic_vector(14-1 downto 0);
 
 begin
 
 reset      <= comp_up_reg and comp_dn_reg;
 
 --PFD phase comparator flip flops
-process(dds_sync)
+process(ref_i, reset)
 begin
-if rising_edge(dds_sync) then
-  comp_dn_reg <= comp_dn_next;
-end if;
-end process;
-
-comp_dn_next <= '0' when (reset = '1') else '1';
-
-process(ref_i)
-begin
-if rising_edge(ref_i)  then
+ if reset = '1' then
+  comp_up_reg <= '0';
+ elsif rising_edge(ref_i)  then
   comp_up_reg <= comp_up_next;
 end if;
 end process;
 
-comp_up_next <= '0' when (reset = '1') else '1';
+comp_up_next <= '1';--'0' when (reset = '1') else '1';
+
+process(dds_sync, reset)
+begin
+ if reset = '1' then
+  comp_dn_reg <= '0';
+ elsif rising_edge(dds_sync) then
+  comp_dn_reg <= comp_dn_next;
+end if;
+end process;
+
+comp_dn_next <= '1';--'0' when (reset = '1') else '1';
+
 
 -- PI loop filter
 process(clk_i)
@@ -86,31 +104,42 @@ begin
  end if;
 end process;
 
- dds_fbk_next <= std_logic_vector(unsigned(dds_fbk_reg)-32) when ((comp_dn_reg = '1') and (comp_up_reg = '0')) else  -- -1 Hz step
-                std_logic_vector(unsigned(dds_fbk_reg)+32) when ((comp_up_reg = '1') and (comp_dn_reg = '0')) else  -- +1 Hz step
+ 
+ dds_fbk_next <= std_logic_vector(unsigned(dds_fbk_reg)-unsigned(I_GAIN)) when ((comp_dn_reg = '1') and (comp_up_reg = '0')) else 
+                std_logic_vector(unsigned(dds_fbk_reg)+unsigned(I_GAIN)) when ((comp_up_reg = '1') and (comp_dn_reg = '0')) else 
                 dds_fbk_reg;
 
- pos_gain_next <= gain when (comp_up_reg = '1') else
+ pos_gain_next <= C_GAIN when (comp_up_reg = '1') else
                  (others =>'0') when (comp_dn_reg = '1') else
                  (others =>'0');
 
- neg_gain_next <= gain when (comp_dn_reg = '1') else
+ neg_gain_next <= C_GAIN when (comp_dn_reg = '1') else
                   (others =>'0') when (comp_up_reg = '1') else
                   (others =>'0');
 
  dds_fbk <= std_logic_vector(unsigned(dds_fbk_reg) + unsigned(pos_gain_reg) - unsigned(neg_gain_reg) + 64);
  
  --DDS signal generator
- --fout = fclock * A / (# step per full cycle) * fin *2^6.     # steps is 2^50, f=125MHz => A = 140737.
- phase_step <= std_logic_vector(to_unsigned(140737,20) * unsigned(dds_fbk));
+ phase_step <= std_logic_vector(to_unsigned(35184,18) * unsigned(dds_fbk));
 
  phase_acc_next <= std_logic_vector(unsigned(phase_acc_reg) + unsigned(phase_step));
 
- dds_sync <= not(phase_acc_reg(49));
+ dds_sync <= not(phase_acc_reg(50-1));
 
- phase_I <= phase_acc_reg(49 downto 40);
- phase_Q <= std_logic_vector(unsigned(phase_acc_reg(49 downto 40)) + to_unsigned(255, 10)); --phase of Q is 90deg advanced from I. 256.
+ --phase_I <= phase_acc_reg(50-1 downto 36);
+ --phase_Q <= std_logic_vector(unsigned(phase_acc_reg(50-1 downto 36)) + to_unsigned(4095, 12)); 
+ 
 
+lut_addr <= phase_acc_reg(50-1 downto 36);
+ 
+ lut: sincos_lut_14 
+   port map( 
+     clk_i   => clk_i,
+     addr_i  => lut_addr,
+     sin     => sin_o,
+     cos     => cos_o
+   );
+ 
  --Locked state detector
  process(clk_i)
 begin
