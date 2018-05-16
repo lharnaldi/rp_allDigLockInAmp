@@ -6,9 +6,9 @@ use ieee.std_logic_unsigned.all;
 entity sincos_lut_14 is
 	port (
 		clk_i  : in std_logic;
-		addr_i : in std_logic_vector(13 downto 0);
-		sin    : out std_logic_vector(13 downto 0);
-		cos    : out std_logic_vector(13 downto 0)
+		addr_i : in std_logic_vector(14-1 downto 0);
+		sin    : out std_logic_vector(14-1 downto 0);
+		cos    : out std_logic_vector(14-1 downto 0)
 		);
 end entity;
 
@@ -17,10 +17,10 @@ architecture rtl of sincos_lut_14 is
 	signal pdsADD, pdcADD :  std_logic;
 	signal dsADD, dcADD :  std_logic;
 	signal sAz, cAz   :  std_logic;
-	signal sADD, cADD :  std_logic_vector(13 DOWNTO 0);
-	signal msin, mcos :  std_logic_vector(13 DOWNTO 0);
+	signal sADD, cADD :  std_logic_vector(14-1 downto 0);
+	signal msin, mcos :  std_logic_vector(14-1 downto 0);
 
-	type rom_mem is array (0 to 4095) of std_logic_vector (15 downto 0);
+	type rom_mem is array (0 to 4095) of std_logic_vector (16-1 downto 0);
 	constant isin : rom_mem :=(  
     x"0000", x"0003", x"0006", x"0009", x"000d", x"0010", x"0013", x"0016", 
     x"0019", x"001c", x"001f", x"0023", x"0026", x"0029", x"002c", x"002f", 
