@@ -19,7 +19,7 @@ end signed_mult;
 
 architecture rtl of signed_mult is
 
-signal mult_reg, mult_next: std_logic_vector(2*(ADC_DATA_WIDTH-1 downto 0)):=(others=>'0');
+signal mult_reg, mult_next: std_logic_vector(2*ADC_DATA_WIDTH-1 downto 0) := (others=>'0');
 
 begin
 
