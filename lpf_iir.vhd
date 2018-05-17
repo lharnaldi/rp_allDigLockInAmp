@@ -3,17 +3,21 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity exp_decay_filter is
+entity lpf_iir is
+generic (
+  AXIS_TDATA_WIDTH: natural := 32;
+  ADC_DATA_WIDTH  : natural := 14
+);
 port(
   aclk       : in std_logic;
   aresetn    : in std_logic;
-  sig_i      : in std_logic_vector(36-1 downto 0);
-  tc_i       : in std_logic_vector (36-1 downto 0); -- time constant: parameter equal to e^-1/d where d is number of samples time constant
-  sig_o      : out std_logic_vector(36-1 downto 0);
+  sig_i      : in std_logic_vector(AXIS_TDATA_WIDTH-1 downto 0);
+  tc_i       : in std_logic_vector (AXIS_TDATA_WIDTH-1 downto 0); -- time constant: parameter equal to e^-1/d where d is number of samples time constant
+  sig_o      : out std_logic_vector(AXIS_TDATA_WIDTH-1 downto 0);
 );
-end exp_decay_filter;
+end lpf_iir;
 
-architecture rtl of exp_decay_filter is
+architecture rtl of lpf_iir is
 
 signal sig_reg, sig_next : signed(36-1 downto 0);
 signal signal_out_old : signed(36-1 downto 0);
