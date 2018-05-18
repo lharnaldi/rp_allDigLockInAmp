@@ -4,12 +4,13 @@ use ieee.numeric_std.all;
 
 entity zero_cross_det is
 generic (
-  ADC_DATA_WIDTH  : natural := 14
+  ADC_DATA_WIDTH  : natural := 14;
+  AXIS_TDATA_WIDTH: natural := 32
 );
 port (
   aclk   : in std_logic;
   aresetn: in std_logic;
-  sig_i  : in std_logic_vector(ADC_DATA_WIDTH-1 downto 0); 		
+  sig_i  : in std_logic_vector(AXIS_TDATA_WIDTH/2-1 downto 0); 		
   det_o  : out std_logic
 );
 end zero_cross_det;
@@ -18,9 +19,9 @@ architecture rtl of zero_cross_det is
 
   -- amount signal must deviate below or above zero to allow zero crossing to be valid
   --constant hyst    : signed(ADC_DATA_WIDTH-1 downto 0) :=x"0008"; 
-  constant hyst    : signed(ADC_DATA_WIDTH-1 downto 0) :="00100000000000"; 
+  constant hyst    : signed(AXIS_TDATA_WIDTH/2-1 downto 0) :="0000100000000000"; 
   
-  signal sig_reg, sig_next: std_logic_vector(ADC_DATA_WIDTH-1 downto 0) ;
+  signal sig_reg, sig_next: std_logic_vector(AXIS_TDATA_WIDTH/2-1 downto 0) ;
   signal det_o_reg, det_o_next: std_logic;
   signal hyst_low_reg, hyst_low_next  : std_logic;
   signal hyst_high_reg, hyst_high_next : std_logic;
