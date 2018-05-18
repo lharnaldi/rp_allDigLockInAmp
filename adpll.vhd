@@ -133,7 +133,7 @@ begin
   
   LUT: entity work.sincos_lut_14 
     port map( 
-      aclk    => aclk,
+      clk_i   => aclk,
       addr_i  => lut_addr,
       sin     => sin_s,
       cos     => cos_s
